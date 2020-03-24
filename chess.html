@@ -1,0 +1,155 @@
+<link href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" rel="stylesheet"/>
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://s3-us-west-2.amazonaws.com/s.cdpn.io/2940219/PerpetualJ.css" rel="stylesheet"/>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<div id="chess-board" class="chess-board"></div>
+    <link href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" rel="stylesheet"/>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://s3-us-west-2.amazonaws.com/s.cdpn.io/2940219/PerpetualJ.css" rel="stylesheet"/>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  
+<style>
+    .chess-board {
+        width: 75vh;
+        min-width: 500px;
+        height: 75vh;
+        min-height: 500px;
+        display: grid;
+        grid-template-columns: repeat(1, 100%);
+        grid-template-rows: repeat(8, 12.5%);
+        place-items: center;
+        border-radius: 15px;
+        box-shadow: 0 0 15px #0005;
+    }
+    .chess-board > .row {
+        width: 100%;
+        height: 100%;
+    }
+    .chess-board > .row > div {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 12.5%;
+        height: 100%;
+        border: none;
+        transition: 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) all;
+        cursor: pointer;
+    }
+    .chess-board > .row > div:hover > i { font-size: 7vh; }
+    .chess-board > .row > div > i {
+        font-size: 5vh;
+        text-shadow: 2px 2px 3px #0005;
+        transition: 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) all;
+    }
+    
+  
+    .chess-board .row:nth-child(1) > div:nth-child(1) { border-top-left-radius: 15px; }
+    .chess-board .row:nth-child(1) > div:last-of-type { border-top-right-radius: 15px; }
+    .chess-board .row:last-of-type > div:nth-child(1) { border-bottom-left-radius: 15px; }
+    .chess-board .row:last-of-type > div:last-of-type { border-bottom-right-radius: 15px; }
+    .chess-board .row:last-of-type() {
+        border-bottom-left-radius: 15px;
+        border-bottom-right-radius: 15px;
+    }
+    .chess-board .row:nth-child(1) {
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+    }
+    
+    /* Colors */
+    .chess-board .row:nth-child(odd) > div:nth-child(odd),
+    .chess-board .row:nth-child(even) > div:nth-child(even) {
+        background-color: #9995;
+    }
+    .chess-board .row:nth-child(odd) > div:nth-child(even),
+    .chess-board .row:nth-child(even) > div:nth-child(odd) {
+        background-color: #3335;
+    }
+    .chess-board .row > div:hover { border: 5px solid #aafa; }
+    .chess-board .row > div.invalid:hover { border: 5px solid #f33a; }
+    .chess-board .row > div.checkmate { background-color: #f33a !important; }
+    .chess-board .row > div.waiting {
+        animation: 1.5s border-pulse linear infinite;
+    }
+    .chess-board .row > div > i.dark { color: #97f; }
+    .chess-board .row > div > i.light { color: #f79; }
+    @keyframes border-pulse {
+        0%, 100% { border: 5px solid #5f90; }
+        50% { border: 5px solid #5f9a; }
+    }
+  
+    .chess-board .row > div.invalid { cursor: not-allowed; }
+
+    .display-3 .fa-chess { transform: translateY(-10px); }
+    .display-3 .flip { transform: translateY(-10px) rotateY(180deg); }
+
+    .primary-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .lead { font-size: 25px; }</style>
+    <script>
+
+var board = [];
+board.push(["R", "N", "B", "K", "Q", "B", "N", "R"]);
+board.push(["P", "P", "P", "P", "P", "P", "P", "P"]);
+board.push(["E", "E", "E", "E", "E", "E", "E", "E"]);
+board.push(["E", "E", "E", "E", "E", "E", "E", "E"]);
+board.push(["E", "E", "E", "E", "E", "E", "E", "E"]);
+board.push(["E", "E", "E", "E", "E", "E", "E", "E"]);
+board.push(["P", "P", "P", "P", "P", "P", "P", "P"]);
+board.push(["R", "N", "B", "K", "Q", "B", "N", "R"]);
+
+var boardElement = document.getElementById("chess-board");
+var rows = "";
+for (var x = 0; x < board.length; x++) {
+	rows += '<div class="row">';
+	
+	for (var y = 0; y < board[x].length; y++) {
+		var args = x + ", " + y;
+		var mouseOver = 'onmouseover="checkSquare(this, ' + args + ')" ';
+		var mouseOut = 'onmouseout="clearSquare(this, ' + args + ')" ';
+		var click = 'onclick="clickSquare(this, ' + args + ')" ';
+		var square = "<div " + mouseOver + mouseOut + click + ">";
+		
+		var piece = "";
+		if (board[x][y] != "E")
+			piece = '<i class="fas fa-chess-';
+			
+		
+		switch (board[x][y]) {
+			case "P": piece += "pawn"; break;
+			case "R": piece += "rook"; break;
+			case "N": piece += "knight"; break;
+			case "B": piece += "bishop"; break;
+			case "K": piece += "king"; break;
+			case "Q": piece += "queen"; break;
+		}
+		
+		if (piece.length > 0){
+			var shade = "dark";
+			if (x > 5)
+				shade = "light";
+			
+			piece += ' ' + shade + '"></i>';
+		}
+		
+		rows += square + piece + '</div>';
+	}
+	
+	rows += "</div>";
+}
+boardElement.innerHTML = rows;
+
+function checkSquare(e, x, y) {}
+function clearSquare(e, x, y) {}
+function clickSquare(e, x, y) {
+	if (e)
+		e.classList.toggle("waiting");
+}
+    </script>
